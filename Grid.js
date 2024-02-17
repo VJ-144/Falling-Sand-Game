@@ -1,9 +1,9 @@
 class Grid {
 
-  constructor(width1, height1, pw) {
+  constructor(width, height, pw) {
     this.pw = pw;
-    this.cols = width1 / pw;
-    this.rows = height1 / pw;
+    this.cols = width / pw;
+    this.rows = height / pw;
     this.grid = new Array(this.cols * this.rows);
   }
 
@@ -31,7 +31,7 @@ class Grid {
   // adds a square of particles on mouse cursor when clicked
   setCircle(Mx, My) {
     // brush radius color
-    let radius = 1;
+    let radius = 2;
     for (let x = Mx - radius; x <= Mx + radius; x++) {
       for (let y = My - radius; y <= My + radius; y++) {
         if (Math.random() > 0.75) {
@@ -72,9 +72,9 @@ class Grid {
 
   // updates particles positions
   updatePixel(i) {
-    let below_i = i + this.rows;
 
     let dir = random([-1, 1]);
+    let below_i = i + this.rows;
     let below_sideA = below_i + dir;
     let below_sideB = below_i - dir;
 
