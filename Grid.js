@@ -1,156 +1,117 @@
 class Grid {
 
-  constructor(width, height, pw) {
+  constructor(width1, height1, pw) {
     this.pw = pw;
-    this.cols = width / pw;
-    this.rows = height / pw;
-    this.grid = new Array(this.cols * this.rows).fill(0);
-    this.grid_color = new Array(3 * this.cols * this.rows).fill(0);
+    this.cols = width1 / pw;
+    this.rows = height1 / pw;
+    this.grid = new Array(this.cols * this.rows);
   }
 
-  // clears grid
-  clear() {
-    this.grid = new Array(this.cols * this.rows).fill(0);
+  // sets entire grid to empty particles
+  clearGrid() {
+    for (let i = 0; i < this.cols * this.rows; i++) {
+      const empty_particle = new empty();
+      this.grid[i] = empty_particle;
+    }
   }
 
+  // get i, j indices in 2D array format from the 1D array
   getIndices(i) {
     let x = i % this.cols;
     let y = floor(i / this.cols);
     return [x, y];
   }
- 
-  getValue(i) {
-    return this.grid[i];
-  }
 
-  getColor(x, y) {
-    let i = 3 * (x + this.cols * y);
-    let red = this.grid_color[i];
-    let green = this.grid_color[i+1];
-    let blue = this.grid_color[i+2];
-    return [red, green, blue];
-  }
-
-  // set the value in the grid
+  // set the particle value in the grid
   set(x, y, value) {
     let i = x + this.cols * y;
     this.grid[i] = value;
   }
 
-  // plots a square on mouse cursor
-  setCircle(Mx, My, radius, value) {
+  // adds a square of particles on mouse cursor when clicked
+  setCircle(Mx, My) {
+    // brush radius color
+    let radius = 1;
     for (let x = Mx - radius; x <= Mx + radius; x++) {
       for (let y = My - radius; y <= My + radius; y++) {
         if (Math.random() > 0.75) {
+          // calculates where to add new sand particle
           let i = x + this.cols * y;
-          this.grid[i] = value;
-  
-          // setting pixel color
-          let [red, green, blue] = grid.varyColor(255, 165, 0);
-          i *= 3;
-          this.grid_color[i] = red;
-          this.grid_color[i+1] = green;
-          this.grid_color[i+2] = blue;
+          let particle = new sand();
+          this.grid[i] = particle;
         }
       }
     }
   }
 
-  // varies the color of input RGB value
-  varyColor(R,G,B) {
-
-    let dir = random([-1, 1]);
-    let red = R - dir * Math.floor(Math.random() * 21);
-    let green = G - dir * Math.floor(Math.random() * 51);
-    let blue = B - dir * Math.floor(Math.random() * 51);
-    
-    red = constrain(red, 0, 255);
-    green = constrain(green, 0, 255);
-    blue = constrain(blue, 0, 255);
-    return [red, green, blue];
-  }
-
-  // checks point on grid is empty
-  isEmpty(a) {
-    if (this.grid[a] === 0) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  // swaps two grid points and colors -> 2 seperate indices
+  // swaps two grid particle objects: (a, b) -> (b, a) via seperate indices
   swap(a, b) {
-
-    // swapping pixel value
-    const temp1 = this.grid[a];
+    const temp = this.grid[a];
     this.grid[a] = this.grid[b];
-    this.grid[b] = temp1; 
-
-    a *= 3;
-    b *= 3;
-
-    // swapping pixel colors
-    const temp2 = this.grid_color[a];
-    this.grid_color[a] = this.grid_color[b];
-    this.grid_color[b] = temp2; 
-
-    const temp3 = this.grid_color[a+1];
-    this.grid_color[a+1] = this.grid_color[b+1];
-    this.grid_color[b+1] = temp3; 
-
-    const temp4 = this.grid_color[a+2];
-    this.grid_color[a+2] = this.grid_color[b+2];
-    this.grid_color[b+2] = temp4; 
+    this.grid[b] = temp; 
   }
 
+  // calculates coursor position and adds particles when clicked
   mouseClick() {
     let Mx = floor(mouseX / this.pw);
     let My = floor(mouseY / this.pw);
     let i = Mx + this.cols * My;
+    let particle = this.grid[i];
 
-    // edge boundry conditions to stop sanding falling out sides
-    // condition to prevent overwriting existing values
-    if (grid.isEmpty(i)) {
-      if (Mx >= 1 && Mx < grid.rows) {
-        if (My >= 1 && My < grid.cols) {    // change conditions for drawing at edge
-          grid.setCircle(Mx, My, 1, 1)
-        }
-      }
+    // edge conditions for drawing at width edges (Mx) and height edges (My)
+    let edgeCondition = false;
+    if (Mx >= 1 && Mx < grid.rows-1 && My >= 1 && My < grid.cols-1) {
+      edgeCondition = true;
+    }
+
+    // condition to prevent overwriting existing pixels drawn
+    if (edgeCondition && particle.empty) {
+      this.setCircle(Mx, My);
     }
   }
 
+  // updates particles positions
   updatePixel(i) {
     let below_i = i + this.rows;
 
     let dir = random([-1, 1]);
-    let below_sideA = dir + below_i;
-    let below_sideB = dir - below_i;
+    let below_sideA = below_i + dir;
+    let below_sideB = below_i - dir;
 
-    // add parameter which checks for edge cases and rejects
-    // by putting it first in the if statment for falling
+    // checks edge conditions to prevent screen overflow
+    let edgeCondition = false;
+    if (i % this.cols != 0 && i % this.cols != this.cols-1) {
+      edgeCondition = true;
+    }
 
-    // let lower_bd = i
-      if (grid.isEmpty(below_i)) {
-        grid.swap(i, below_i);
-      } else if (grid.isEmpty(below_sideA)) {
-        if (i % this.cols != 0 && i % this.cols != this.cols-1) {
-          grid.swap(i, below_sideA);
-        }
-      } else if (grid.isEmpty(below_sideB)) {
-        if (i % this.cols != 0 && i % this.cols != this.cols-1) {
-          grid.swap(i, below_sideB);
-        }
+    let p_below = this.grid[below_i];
+    let p_belowA = this.grid[below_sideA];
+    let p_belowB = this.grid[below_sideB];
+
+    // swaps particles below and to the sides below
+    if (below_i + 1 < this.rows * this.cols) {
+      if (p_below.empty) {
+        this.swap(i, below_i);    
       }
+      else if (edgeCondition && p_belowA.empty) {
+        this.swap(i, below_sideA);
+      }
+      else if (edgeCondition && p_belowB.empty) {
+        this.swap(i, below_sideB);
+      }
+    }
     
   }
 
-  plotSquare(a) {
-    let [i, j] = grid.getIndices(a);
+  // plots squares to screen based on 1D array index
+  plotSquare(idx) {
+    let particle = this.grid[idx];
+    let [R, G, B] = particle.color;
+    fill(R, G, B);
+
+    let [i, j] = this.getIndices(idx);
     let x = i * this.pw;
     let y = j * this.pw;
-    let RGB_value = grid.getColor(i, j);
-    fill(RGB_value);
     square(x , y, this.pw);
   }
 }

@@ -1,17 +1,20 @@
+// sand particle class
 class sand extends Particle {
-
-  // orange sand in RGB
-  static baseColor = [255, 165, 0];
+  // orange particle color
+  static baseColor = [228, 155, 15];
   constructor() {
-    super({color : baseColor}, {empty : false}, {value : 1})
+    super(sand.baseColor, false, 1);
+    super.varyColor();
+
   }
+  
 }
 
-
+// empty particle class
 class empty extends Particle {
-  // black background in RGB
-  static baseColor = [0, 0, 0];
+  // black particle color for blank particle
+  static baseColor = '#000000';
   constructor() {
-    super({color : baseColor}, {empty : true}, {value : 0})
+    super(sand.baseColor, true, 0);
   }
 }
